@@ -225,19 +225,25 @@ impl InnerWebView {
       #[cfg(target_os = "ios")]
       let custom_data_store_available = os_major_version >= 17;
 
-      let data_store = match (
-        attributes.incognito,
-        custom_data_store_available,
-        pl_attrs.data_store_identifier,
-      ) {
-        (true, _, _) => WKWebsiteDataStore::nonPersistentDataStore(mtm),
-        // if data_store_identifier is given and custom data stores are available, use custom store
-        (false, true, Some(data_store)) => {
-          let identifier = NSUUID::from_bytes(data_store);
-          WKWebsiteDataStore::dataStoreForIdentifier(&identifier, mtm)
-        }
-        // default data store
-        _ => WKWebsiteDataStore::defaultDataStore(mtm),
+      let data_store = if using_existing_config {
+        config.websiteDataStore()
+      } else {
+        let data_store = match (
+          attributes.incognito,
+          custom_data_store_available,
+          pl_attrs.data_store_identifier,
+        ) {
+          (true, _, _) => WKWebsiteDataStore::nonPersistentDataStore(mtm),
+          // if data_store_identifier is given and custom data stores are available, use custom store
+          (false, true, Some(data_store)) => {
+            let identifier = NSUUID::from_bytes(data_store);
+            WKWebsiteDataStore::dataStoreForIdentifier(&identifier, mtm)
+          }
+          // default data store
+          _ => WKWebsiteDataStore::defaultDataStore(mtm),
+        };
+        config.setWebsiteDataStore(&data_store);
+        data_store
       };
 
       // Register Custom Protocols
@@ -302,7 +308,6 @@ impl InnerWebView {
         custom_protocol_task_ids: Default::default(),
       });
 
-      config.setWebsiteDataStore(&data_store);
       let _preference = config.preferences();
       let _yes = NSNumber::numberWithBool(true);
 
@@ -1255,12 +1260,33 @@ pub fn url_from_webview(webview: &WKWebView) -> Result<String> {
 
 pub fn platform_webview_version() -> Result<String> {
   unsafe {
-    let bundle = NSBundle::bundleWithIdentifier(&NSString::from_str("com.apple.WebKit")).unwrap();
-    let dict = bundle.infoDictionary().unwrap();
-    let webkit_version = dict
-      .objectForKey(&NSString::from_str("CFBundleVersion"))
-      .unwrap();
-    let webkit_version = webkit_version.downcast::<NSString>().unwrap();
+    let Some(bundle) = NSBundle::bundleWithIdentifier(&NSString::from_str("com.apple.WebKit"))
+    else {
+      return Err(Error::Io(std::io::Error::new(
+        std::io::ErrorKind::Other,
+        "failed to locate com.apple.WebKit bundle",
+      )));
+    };
+    let Some(dict) = bundle.infoDictionary() else {
+      return Err(Error::Io(std::io::Error::new(
+        std::io::ErrorKind::Other,
+        "failed to get WebKit info dictionary",
+      )));
+    };
+
+    let Some(webkit_version) = dict.objectForKey(&NSString::from_str("CFBundleVersion")) else {
+      return Err(Error::Io(std::io::Error::new(
+        std::io::ErrorKind::Other,
+        "failed to get WebKit version",
+      )));
+    };
+
+    let Ok(webkit_version) = webkit_version.downcast::<NSString>() else {
+      return Err(Error::Io(std::io::Error::new(
+        std::io::ErrorKind::Other,
+        "failed to parse WebKit version",
+      )));
+    };
 
     bundle.unload();
     Ok(webkit_version.to_string())
