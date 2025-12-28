@@ -1,5 +1,11 @@
 # Changelog
 
+## \[0.54.0]
+
+- [`5fdd1a9`](https://github.com/tauri-apps/wry/commit/5fdd1a9840e24ce77ea4a57ce3746c3dbee28c9c) ([#1625](https://github.com/tauri-apps/wry/pull/1625)) Use OnBackPressedCallback instead of the deprecated onKeyDown for back navigation on Android.
+- [`7b77322`](https://github.com/tauri-apps/wry/commit/7b77322f886c440d035674b8efa586671dc0a3db) ([#1647](https://github.com/tauri-apps/wry/pull/1647)) Fix clippy io_other_error. No user facing changes.
+- [`27ba73f`](https://github.com/tauri-apps/wry/commit/27ba73f07720b80a21b6b876f1229cad8871aa33) Add handler for web content process termination.
+
 ## \[0.53.5]
 
 - [#1622](https://github.com/tauri-apps/wry/pull/1626) Fixed an issue that caused docs.rs builds to fail. No user facing changes.
