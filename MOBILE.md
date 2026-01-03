@@ -330,3 +330,90 @@ Open `chrome://inspect/#devices` in Chrome to get the devtools window.
 ### iOS
 
 Open Safari > Develop > [Your Device Name] > [Your WebView].
+
+## OpenHarmony
+
+Wry also supports OpenHarmony platform through the `openharmony-ability` crate.
+
+### Prerequisite
+
+- **DevEco Studio** installed (version 5.0.0 or later recommended)
+- **OpenHarmony SDK** with NDK
+- Rust toolchain with OpenHarmony target support (Rust 1.78+)
+
+### Installing OpenHarmony SDK
+
+1. Download and install [DevEco Studio](https://developer.harmonyos.com/cn/develop/deveco-studio)
+2. Open DevEco Studio and go to **Settings > SDK**
+3. Install the following components:
+   - OpenHarmony SDK
+   - Native (NDK)
+   - Previewer
+
+### Setting up Environment Variables
+
+##### Linux/WSL/macOS
+
+```bash
+# In .bashrc or .zshrc:
+export OHOS_SDK_HOME="$HOME/OpenHarmony/Sdk"
+export OHOS_NDK_HOME="$OHOS_SDK_HOME/native"
+export PATH="$PATH:$OHOS_NDK_HOME/toolchains/llvm/bin"
+```
+
+##### Windows (PowerShell)
+
+```powershell
+$env:OHOS_SDK_HOME="C:\Users\$env:USERNAME\OpenHarmony\Sdk"
+$env:OHOS_NDK_HOME="$env:OHOS_SDK_HOME\native"
+```
+
+### Install Rust OpenHarmony targets:
+
+```shell
+rustup target add aarch64-unknown-linux-ohos
+```
+
+### Building for OpenHarmony
+
+```bash
+# Build for OpenHarmony (aarch64)
+cargo build --target aarch64-unknown-linux-ohos --features os-webview
+```
+
+### Running on OpenHarmony Emulator
+
+DevEco Studio provides a local emulator for OpenHarmony:
+
+1. Open DevEco Studio
+2. Go to **Device Manager** → **Local Emulator**
+3. Create a new emulator instance (Phone, Tablet, etc.)
+4. Start the emulator
+5. Deploy your app using `hdc` (HarmonyOS Device Connector)
+
+```bash
+# List devices/emulators
+hdc list targets
+
+# Install and run the app
+hdc install your-app.hap
+hdc shell aa start -a EntryAbility -b com.example.your.app
+```
+
+### Running on Real Device
+
+1. Enable Developer Mode on your OpenHarmony device
+2. Connect via USB
+3. Verify connection: `hdc list targets`
+4. Install and run your app
+
+### Devtools
+
+OpenHarmony WebView supports remote debugging. Set the `devtools` attribute to `true` when building the webview, then use Chrome DevTools to inspect.
+
+### Notes
+
+- OpenHarmony support is currently in beta
+- The `openharmony-ability` crate (version 0.3.0) provides the native bindings
+- Some features may not be fully implemented yet (e.g., cookies, bounds management)
+- Report issues on [GitHub](https://github.com/tauri-apps/wry/issues)

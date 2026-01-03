@@ -18,6 +18,7 @@ jobs:
           - { target: aarch64-apple-ios, os: macos-latest }
           - { target: x86_64-apple-darwin, os: macos-latest }
           - { target: aarch64-linux-android, os: ubuntu-latest }
+          - { target: aarch64-unknown-linux-ohos, os: ubuntu-latest }
         features:
           - {
               args: --no-default-features --features os-webview,
@@ -56,11 +57,11 @@ jobs:
 
       - name: build tests and examples
         shell: bash
-        if: (!contains(matrix.platform.target, 'android') && !contains(matrix.platform.target, 'ios'))
+        if: (!contains(matrix.platform.target, 'android') && !contains(matrix.platform.target, 'ios') && !contains(matrix.platform.target, 'ohos'))
         run: cargo test --no-run --verbose --target ${{ matrix.platform.target }} ${{ matrix.features.args }}
 
       - name: run tests
-        if: (!contains(matrix.platform.target, 'android') && !contains(matrix.platform.target, 'ios'))
+        if: (!contains(matrix.platform.target, 'android') && !contains(matrix.platform.target, 'ios') && !contains(matrix.platform.target, 'ohos'))
         run: cargo test --verbose --target ${{ matrix.platform.target }} --features linux-body ${{ matrix.features.args }}
 
       - name: install nightly
@@ -70,7 +71,7 @@ jobs:
           components: miri
 
       - name: Run tests with miri
-        if: (!contains(matrix.platform.target, 'android') && !contains(matrix.platform.target, 'ios'))
+        if: (!contains(matrix.platform.target, 'android') && !contains(matrix.platform.target, 'ios') && !contains(matrix.platform.target, 'ohos'))
         run: cargo +nightly miri test --verbose --target ${{ matrix.platform.target }} --features linux-body ${{ matrix.features.args }}
 
   doc:

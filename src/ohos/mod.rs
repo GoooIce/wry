@@ -136,7 +136,7 @@ impl InnerWebView {
     Ok(())
   }
 
-  pub fn id(&self) -> crate::WebViewId {
+  pub fn id(&self) -> crate::WebViewId<'_> {
     &self.id
   }
 
@@ -271,4 +271,45 @@ impl InnerWebView {
 
 pub fn platform_webview_version() -> Result<String> {
   Ok("1.0.0".to_string())
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn test_platform_webview_version() {
+    let version = platform_webview_version();
+    assert!(version.is_ok());
+    assert_eq!(version.unwrap(), "1.0.0");
+  }
+
+  #[test]
+  fn test_counter_increments() {
+    let v1 = crate::util::Counter::next_static();
+    let v2 = crate::util::Counter::next_static();
+    assert!(v2 > v1);
+  }
+
+  #[test]
+  fn test_rgba_color_formatting() {
+    let color = (255u8, 128u8, 64u8, 255u8);
+    let formatted = format!(
+      "#{:02X}{:02X}{:02X}{:02X}",
+      color.0, color.1, color.2, color.3
+    );
+    assert_eq!(formatted, "#FF8040FF");
+  }
+
+  #[test]
+  fn test_error_display() {
+    let err = Error::OpenHarmonyInitError("test error".to_string());
+    assert_eq!(
+      err.to_string(),
+      "Failed to initialize OpenHarmony webview: test error"
+    );
+
+    let err2 = Error::OpenHarmonyWebviewError("test error".to_string());
+    assert_eq!(err2.to_string(), "Failed to execute: test error");
+  }
 }
